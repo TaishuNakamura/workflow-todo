@@ -1,0 +1,13 @@
+# Maven/Gradle build outputs
+target/
+build/
+
+# IDE settings
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS junk
+.DS_Store
+Thumbs.db

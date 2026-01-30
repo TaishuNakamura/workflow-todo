@@ -1,0 +1,83 @@
+path:
+  /tasks/{id}/send-to-waiting:
+    post:
+      summary: タスクを確認待ちにする
+      parameters:
+        - $ref: "#/components/parameters/TaskId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [waitingReason]
+              properties:
+                waitingReason:
+                  type: string
+      responses:
+        "200":
+          description: 確認待ちに遷移
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/TaskDetail"
+        "400":
+          description: waitingReasonが空
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 指定されたidのタスクが存在しない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: NORMAL以外からの遷移
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+
+  /tasks/{id}/suspend:
+    post:
+      summary:  タスクを中断する
+      parameters: 
+        - $ref: "#/components/parameters/TaskId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [progressNote]
+              properties: 
+                progressNote:
+                  type: string
+      responses:
+        "200":
+          description: 中断中に遷移
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/TaskDetail"
+        "400":
+          description: progressNoteが空
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 指定されたidのタスクが存在しない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: NORMAL以外からの遷移
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
