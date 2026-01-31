@@ -81,3 +81,53 @@ path:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
+  /tasks/{id}/resume:
+    post: 
+      summary: 中断を解除する
+      parameters: 
+        - $ref: "#/components/parameters/TaskId"
+      responses:
+        "200":
+          description: "中断を解除する"
+          content:
+            application/json: 
+              schema: 
+                $ref: "#/components/schemas/TaskDetail"
+        "404": 
+          description: "指定されたidのタスクが存在しない"
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409": 
+          description: "SUSPENDED以外からの遷移"
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /tasks/{id}/approve:
+    post:
+      summary:  タスクを承認する
+      parameters: 
+        - $ref: "#/components/parameters/TaskId"
+      responses:
+        "200":
+          description: タスクを承認、完了に遷移する
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/TaskDetail"
+        "404":
+          description: 指定されたidのタスクが存在しない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: 状態不正または子タスク未完了
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
