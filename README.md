@@ -7,7 +7,7 @@
 日常業務や学習において、以下の課題を解決することを主眼とする。
 
 - 複数タスクを並行して進める際、全体の進捗段階が俯瞰しづらい。
-- 承認・添削などの外的要因による町タスクの量や内訳が把握しづらい。
+- 承認・添削などの外的要因による待ちタスクの量や内訳が把握しづらい。
 - 中断した作業を再開する際、「どこまで進んでいたか」を探すことから始まり作業効率が下がる。
 
 ## 想定ユーザー
@@ -47,8 +47,120 @@
 - UIは簡易的なWeb UIとし、業務ルールはバックエンドに集約する。
 - 通知、期限管理、優先度管理は対象外とする。
 
+## 業務ルール
+### 状態：NORMAL
+- suspend：OK(progressNote必須)
+- resume：NG(INVALID_STATE)
+- send-to-waiting：OK(waitingReason必須)
+- approve：NG(INVALID_STATE)
+- reject：NG(INVALID_STATE)
+- complete：OK(子タスクがある場合、全子タスク完了が必須)
+
+### 状態：SUSPENDED
+- suspend：NG(INVALID_STATE)
+- resume：OK
+- send-to-waiting：NG(INVALID_STATE)
+- approve：NG(INVALID_STATE)
+- reject：NG(INVALID_STATE)
+- complete：NG(INVALID_STATE)
+
+### 状態：WAITING_REVIEW
+- suspend：NG(INVALID_STATE)
+- resume：NG(INVALID_STATE)
+- send-to-waiting：NG(INVALID_STATE)
+- approve：OK(子タスクがある場合、全ての子タスク完了が必須)
+- reject：OK
+- complete：NG(INVALID_STATE)
+
+### 状態：DONE
+- suspend：NG(INVALID_STATE)
+- resume：NG(INVALID_STATE)
+- send-to-waiting：NG(INVALID_STATE)
+- approve：NG(INVALID_STATE)
+- reject：NG(INVALID_STATE)
+- complete：NG(INVALID_STATE)
+
+## API仕様（エンドポイント）
+- GET /tasks：通常一覧(NORMAL/SUSPENDED/WAITING_REVIEW 混在)
+- GET /tasks/waiting：確認待ち一覧(WAITING_REVIEW)
+- GET /tasks/{id}：詳細(子タスク1階層を含む)
+- POST /tasks：作成(親/子)
+- PATCH /tasks/{id}：更新(DONEは更新不可)
+- POST /tasks/{id}/suspend：中断
+- POST /tasks/{id}/resume：中断解除
+- POST /tasks/{id}/send-to-waiting：確認待ちへ
+- POST /tasks/{id}/approve：承認(OK)
+- POST /tasks/{id}/reject：差し戻し(NG)
+- POST /tasks/{id}/complete：完了
+
+## エラー設計
+- code enum：VALIDATION_ERROR/INVALID_STATE/CHILDREN_INCOMPLETE/NOT_FOUND
+- details：
+    - code=CHILDREN_INCOMPLETEの場合のみ、details.incompleteChildrenを返す(id/title/status)
+    - それ以外はdetailsを省略
+
+## API別エラー条件一覧
+### createTask(POST /tasks)
+- 400：titleが空、parentIdがnull(親タスクとして作成)のときpurposeNoteが空
+- 404：parentIdで指定した親タスクが存在しない。
+- 409：なし
+
+### updateTask(PATCH /tasks/{id})
+- 400：親タスクのpurposeNoteを空に更新しようとした
+- 404：指定したidのタスクが存在しない
+- 409：状態がDONEのため更新できない(INVALID_STATE)
+
+### getTaskDetail(GET /tasks/{id})
+- 400：なし
+- 404：指定したidのタスクが存在しない
+- 409：なし
+
+### listTasks(GET /tasks)
+- 400：なし
+- 404：なし
+- 409：なし
+
+### listWaitingTasks(GET /tasks/waiting)
+- 400：なし
+- 404：なし
+- 409：なし
+
+### suspend(/tasks/{id}/suspend)
+- 400：progressNoteが空
+- 404：idのタスクが存在しない
+- 409：NORMAL以外からの遷移
+
+### resume(/tasks/{id}/resume)
+- 400：なし
+- 404：idのタスクが存在しない
+- 409：SUSPENDED以外からの遷移
+
+### send-to-waiting(/tasks/{id}/send-to-waiting)
+- 400：waitingReasonが空
+- 404：idのタスクが存在しない
+- 409：NORMAL以外からの遷移
+
+### approve(/tasks/{id}/approve)
+- 400：なし
+- 404：idのタスクが存在しない
+- 409：
+    - WAITING_REVIEW以外からの遷移(INVALID_STATE)
+    - 未完了の子タスクが存在(CHILDREN_INCOMPLETE)
+
+### reject(/tasks/{id}/reject)
+- 400：なし
+- 404：idのタスクが存在しない
+- 409：WAITING_REVIEW以外からの遷移
+
+### complete(/tasks/{id}/complete)
+- 400：なし
+- 404：idのタスクが存在しない
+- 409：
+    - NORMAL以外からの遷移(INVALID_STATE)
+    - 未完了の子タスクが存在(CHILDREN_INCOMPLETE)
+
 ## 今後の進め方
-1. 基本設計:状態毎に「できる操作/できない操作」を業務ルールとして整理する。
-2. 基本設計:API操作(ユースケース)と、必須入力・エラー条件を確定する。
+1. 基本設計:タスク項目(必須/任意)と入力制約を確定
+2. 詳細設計:状態遷移の検証順序・例外方針を決める
 3. 実装:バックエンド(API・業務ルール) → 最小UI(一覧・詳細・状態操作)を並行で進める。
 4. テスト:状態遷移・必須入力・子タスク制約を中心にテストケースを作成し、検証する。
