@@ -1,4 +1,4 @@
-path:
+paths:
   /tasks/{id}/send-to-waiting:
     post:
       summary: タスクを確認待ちにする
@@ -22,23 +22,11 @@ path:
               schema: 
                 $ref: "#/components/schemas/TaskDetail"
         "400":
-          description: waitingReasonが空
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/Error400"
         "404":
-          description: 指定されたidのタスクが存在しない
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/Error404"
         "409":
-          description: NORMAL以外からの遷移
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/Error409InvalidState"
 
 
   /tasks/{id}/suspend:
@@ -64,23 +52,11 @@ path:
               schema: 
                 $ref: "#/components/schemas/TaskDetail"
         "400":
-          description: progressNoteが空
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/Error400"
         "404":
-          description: 指定されたidのタスクが存在しない
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/Error404"
         "409":
-          description: NORMAL以外からの遷移
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/Error409InvalidState"
 
   /tasks/{id}/resume:
     post: 
@@ -95,17 +71,9 @@ path:
               schema: 
                 $ref: "#/components/schemas/TaskDetail"
         "404": 
-          description: "指定されたidのタスクが存在しない"
-          content: 
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/Error404"
         "409": 
-          description: "SUSPENDED以外からの遷移"
-          content: 
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/Error409InvalidState"
 
   /tasks/{id}/approve:
     post:
@@ -120,11 +88,7 @@ path:
               schema: 
                 $ref: "#/components/schemas/TaskDetail"
         "404":
-          description: 指定されたidのタスクが存在しない
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/Error404"
         "409":
           description: 状態不正または子タスク未完了
           content:
@@ -145,17 +109,9 @@ path:
               schema: 
                 $ref: "#/components/schemas/TaskDetail"
         "404":
-          description: 指定されたidのタスクが存在しない
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/Error404"
         "409":
-          description: 状態が不正です
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/Error409InvalidState"
 
   /tasks/{id}/complete:
     post:
@@ -170,11 +126,7 @@ path:
               schema: 
                 $ref: "#/components/schemas/TaskDetail"
         "404":
-          description: 指定されたidのタスクが存在しない
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/Error404"
         "409":
           description: 状態不正または子タスク未完了
           content:
@@ -211,4 +163,61 @@ components:
         invalid_state:
           value: 
             code: INVALID_STATE
-            message: 状態が不正です。
+            message: タスク状態が不正です。
+    
+  responses:
+    Error400:
+      description: バリデーションエラー
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            validation_error:
+              value:
+                code: VALIDATION_ERROR
+                message: バリデーションエラー
+                details: null
+
+    Error404:
+      description: 指定されたリソースが存在しない
+      content: 
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            not_found:
+              value:
+                code: NOT_FOUND
+                message: タスクが見つかりません。
+                details: null
+    
+    Error409InvalidState:
+      description: 状態不正
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            invalid_state:
+              value:
+                code: INVALID_STATE
+                message: タスク状態が不正です。
+                details: null
+
+    Error409ChildrenIncomplete:
+      description: 子タスク未完了
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            children_incomplete:
+              value:
+                code: CHILDREN_INCOMPLETE
+                message: 未完了の子タスクがあります。
+                details:
+                  incompleteChildren:
+                    - id: 11111111-1111-1111-1111-111111111111
+                      title: 子タスクA
+                      status: NORMAL
