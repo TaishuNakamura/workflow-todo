@@ -25,4 +25,9 @@ public class TaskActionController {
     public TaskDetail suspend(@PathVariable String id){
         return taskService.suspend(id);
     }
+
+    @PostMapping("/tasks/{id}/send-to-waiting")
+    public TaskDetail sendToWaiting(@PathVariable String id){
+        return taskService.sendToWaiting(id);
+    }
 }
