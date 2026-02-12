@@ -1,6 +1,8 @@
 package com.example.workflow_todo.task;
 
 import java.time.OffsetDateTime;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Service;
 
@@ -13,14 +15,24 @@ import com.example.workflow_todo.api.ErrorCode;
 @Service
 public class TaskService {
     
+    private final Map<String, Task> store = new ConcurrentHashMap<>();
+
+    public TaskService(){
+        // 仮データ
+        store.put("1", new Task("1", TaskStatus.SUSPENDED));  // resume成功例
+        store.put("2", new Task("2", TaskStatus.NORMAL));     // resume失敗例
+    }
+
     public TaskDetail resume(String id){
-        // 仮ルール
-        if("404".equals(id)){
-            throw new ApiException(ErrorCode.NOT_FOUND, "タスクが見つかりません");
+        Task task = store.get(id);
+        if(task == null){
+            throw new ApiException(ErrorCode.NOT_FOUND, "タスクが見つかりません。");
         }
-        if("409".equals(id)){
-            throw new ApiException(ErrorCode.INVALID_STATE, "タスク状態が不正です");
+        if(task.getStatus() != TaskStatus.SUSPENDED){
+            throw new ApiException(ErrorCode.INVALID_STATE, "タスク状態が不正です。");
         }
-        return new TaskDetail(id, "NORMAL", OffsetDateTime.now());
+
+        task.setStatus(TaskStatus.NORMAL);
+        return new TaskDetail(task.getId(), task.getStatus().name(), task.getUpdatedAt());
     }
 }
