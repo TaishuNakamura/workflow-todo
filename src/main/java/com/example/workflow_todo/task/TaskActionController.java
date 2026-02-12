@@ -20,4 +20,9 @@ public class TaskActionController {
     public TaskDetail resume(@PathVariable String id){
         return taskService.resume(id);
     }
+
+    @PostMapping("/tasks/{id}/suspend")
+    public TaskDetail suspend(@PathVariable String id){
+        return taskService.suspend(id);
+    }
 }

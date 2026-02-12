@@ -34,6 +34,7 @@ public class TaskService {
             throw new ApiException(ErrorCode.NOT_FOUND, "タスクが見つかりません。");
         }
 
+        // 親子制約：親がSUSPENDEDかDONEの子は操作禁止
         String parentId = task.getParentId();
         if(parentId != null){
             Task parent = store.get(parentId);
@@ -48,5 +49,29 @@ public class TaskService {
 
         task.setStatus(TaskStatus.NORMAL);
         return new TaskDetail(task.getId(), task.getStatus(), task.getUpdatedAt());
+    }
+
+    public TaskDetail suspend(String id){
+        Task task = store.get(id);
+        if(task == null){
+            throw new ApiException(ErrorCode.NOT_FOUND, "タスクが見つかりません。");
+        }
+
+        // 親子制約：親がSUSPENDEDかDONEの子は操作禁止
+        String parentId = task.getParentId();
+        if(parentId != null){
+            Task parent = store.get(parentId);
+            if(parent != null && (parent.getStatus() == TaskStatus.SUSPENDED || parent.getStatus() == TaskStatus.DONE)){
+                throw new ApiException(ErrorCode.INVALID_STATE, "タスク状態が不正です。");
+            }
+        }
+
+        TaskStatus status = task.getStatus();
+        if(status == TaskStatus.NORMAL || status == TaskStatus.WAITING_REVIEW){
+            task.setStatus(TaskStatus.SUSPENDED);
+            return new TaskDetail(task.getId(), task.getStatus(), task.getUpdatedAt());
+        }
+
+        throw new ApiException(ErrorCode.INVALID_STATE, null);
     }
 }
