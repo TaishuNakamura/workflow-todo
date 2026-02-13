@@ -36,11 +36,42 @@ public class GlobalExcptionHandler {
                 status = HttpStatus.INTERNAL_SERVER_ERROR;
         }
         
+        String message;
+        if(ex.getMessage() != null){
+            message = ex.getMessage();
+        }else{
+            message = defaultMessage(ex.getCode());
+        }
         /*
             ResponseBody(JSONの元)の作成。
             recordの値(code/message/details)を持つ。
          */
-        ErrorResponse body = new ErrorResponse(ex.getCode(), ex.getMessage(), ex.getDetails());
+        ErrorResponse body = new ErrorResponse(ex.getCode(), message, ex.getDetails());
         return ResponseEntity.status(status).body(body);
+    }
+
+    /*
+        エラーメッセージを返却
+     */
+    public String defaultMessage(ErrorCode code){
+        String msg;
+        switch(code){
+            case NOT_FOUND:
+                msg = "タスクが見つかりません。";
+                break;
+            case VALIDATION_ERROR:
+                msg = "入力値が不正です。";
+                break;
+            case INVALID_STATE:
+                msg = "タスク状態が不正です。";
+                break;
+            case CHILDREN_INCOMPLETE:
+                msg = "未完了の子タスクがあります。";
+                break;
+            default:
+                msg = "エラーが発生しました。";
+                break;
+        }
+        return msg;
     }
 }
