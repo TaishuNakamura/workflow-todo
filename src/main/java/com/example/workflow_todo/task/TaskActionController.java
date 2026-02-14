@@ -16,18 +16,33 @@ public class TaskActionController {
         this.taskService = taskService;
     }
     
+    // POST resume
     @PostMapping("/tasks/{id}/resume")
     public TaskDetail resume(@PathVariable String id){
         return taskService.resume(id);
     }
 
+    // POST suspend
     @PostMapping("/tasks/{id}/suspend")
     public TaskDetail suspend(@PathVariable String id){
         return taskService.suspend(id);
     }
 
+    // POST send-to-waiting
     @PostMapping("/tasks/{id}/send-to-waiting")
     public TaskDetail sendToWaiting(@PathVariable String id){
         return taskService.sendToWaiting(id);
+    }
+
+    // POST reject
+    @PostMapping("/tasks/{id}/reject")
+    public TaskDetail reject(@PathVariable String id){
+        return taskService.reject(id);
+    }
+
+    // POST approve
+    @PostMapping("/tasks/{id}/approve")
+    public TaskDetail approve(@PathVariable String id){
+        return taskService.approve(id);
     }
 }
