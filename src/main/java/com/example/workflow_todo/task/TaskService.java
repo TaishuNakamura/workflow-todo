@@ -1,5 +1,8 @@
 package com.example.workflow_todo.task;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,6 +32,12 @@ public class TaskService {
 
         store.put("P2", new Task("P2", TaskStatus.NORMAL));
         store.put("C2", new Task("C2", "P2", TaskStatus.SUSPENDED));
+
+        store.put("P3", new Task("P3", TaskStatus.DONE));
+        store.put("C3", new Task("C3", "P3", TaskStatus.NORMAL));
+
+        store.put("P4", new Task("P4", TaskStatus.WAITING_REVIEW));
+        store.put("C4", new Task("C4", "P4", TaskStatus.NORMAL));
     }
 
     // 状態：SUSPENDED->NORMAL
@@ -141,7 +150,7 @@ public class TaskService {
         // 指定されたidのタスクがない
         Task task = store.get(id);
         if(task == null){
-            throw new ApiException(ErrorCode.NOT_FOUND, "タスクが見つかりません。");
+            throw new ApiException(ErrorCode.NOT_FOUND, null);
         }
 
         // 親子制約：親がSUSPENDEDかDONEの子は操作禁止
@@ -158,7 +167,30 @@ public class TaskService {
             throw new ApiException(ErrorCode.INVALID_STATE, null);
         }
 
+        // 未完了の子タスクあり
+        Map<String, Object> details = incompleteChildrenDetails(task.getId());
+        List<?> list = (List<?>) details.get("incompleteChildren");
+        if(!list.isEmpty()){
+            throw new ApiException(ErrorCode.CHILDREN_INCOMPLETE, null, details);
+        }
+
         task.setStatus(TaskStatus.DONE);
         return new TaskDetail(task.getId(), task.getStatus(), task.getUpdatedAt());
+    }
+
+    
+    // 未完了の子タスク取得
+    private Map<String, Object> incompleteChildrenDetails(String parentId){
+        List<IncompleteChildSummary> incompleteChildren = new ArrayList<>();
+
+        for(Task t : store.values()){
+            if(parentId.equals(t.getParentId()) && t.getStatus() != TaskStatus.DONE){
+                incompleteChildren.add(new IncompleteChildSummary(t.getId(), t.getId(), t.getStatus()));
+            }
+        }
+
+        Map<String, Object> details = new HashMap<>();
+        details.put("incompleteChildren", incompleteChildren);
+        return details;
     }
 }
