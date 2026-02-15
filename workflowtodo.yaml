@@ -95,6 +95,11 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalid_state:
+                  $ref: "#/components/responses/Error409InvalidState/content/application~1json/examples/invalid_state"
+                children_incomplete:
+                  $ref: "#/components/responses/Error409ChildrenIncomplete/content/application~1json/examples/children_incomplete"
   
   /tasks/{id}/reject:
     post:
@@ -133,6 +138,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalid_state:
+                  $ref: "#/components/responses/Error409InvalidState/content/application~1json/examples/invalid_state"
+              children_incomplete:
+                $ref: "#/components/responses/Error409ChildrenIncomplete/content/application~1json/examples/children_incomplete"
+
                     
 components:
   schemas:
