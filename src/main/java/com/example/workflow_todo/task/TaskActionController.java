@@ -1,8 +1,15 @@
 package com.example.workflow_todo.task;
 
+import java.util.Map;
+
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import com.example.workflow_todo.api.ApiException;
+import com.example.workflow_todo.api.ErrorCode;
+
 
 /*
     Controllerクラス。(HTTPの窓口的役割)
@@ -24,13 +31,31 @@ public class TaskActionController {
 
     // POST suspend
     @PostMapping("/tasks/{id}/suspend")
-    public TaskDetail suspend(@PathVariable String id){
+    public TaskDetail suspend(@PathVariable String id, @RequestBody(required = false) Map<String, String> body){
+        if(body == null){
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, null, Map.of("field", "progressNote"));
+        }
+        
+        String progressNote = body.get("progressNote");
+        if(progressNote == null || progressNote.isBlank()){
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, null, Map.of("field", "progressNote"));
+        }
+        
         return taskService.suspend(id);
     }
 
     // POST send-to-waiting
     @PostMapping("/tasks/{id}/send-to-waiting")
-    public TaskDetail sendToWaiting(@PathVariable String id){
+    public TaskDetail sendToWaiting(@PathVariable String id, @RequestBody(required = false) Map<String, String> body){
+        if(body == null){
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, null, Map.of("field", "waitingReason"));
+        }
+        
+        String waitingReason = body.get("waitingReason");
+        if(waitingReason == null || waitingReason.isBlank()){
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, null, Map.of("field", "waitingReason"));
+        }
+        
         return taskService.sendToWaiting(id);
     }
 
