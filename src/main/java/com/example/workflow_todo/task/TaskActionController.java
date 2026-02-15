@@ -31,13 +31,10 @@ public class TaskActionController {
 
     // POST suspend
     @PostMapping("/tasks/{id}/suspend")
-    public TaskDetail suspend(@PathVariable String id, @RequestBody(required = false) Map<String, String> body){
-        if(body == null){
-            throw new ApiException(ErrorCode.VALIDATION_ERROR, null, Map.of("field", "progressNote"));
-        }
-        
-        String progressNote = body.get("progressNote");
-        if(progressNote == null || progressNote.isBlank()){
+    public TaskDetail suspend(
+        @PathVariable String id, 
+        @RequestBody(required = false) SuspendRequest body){
+        if(body == null || body.progressNote() == null || body.progressNote().isBlank()){
             throw new ApiException(ErrorCode.VALIDATION_ERROR, null, Map.of("field", "progressNote"));
         }
         
@@ -46,13 +43,11 @@ public class TaskActionController {
 
     // POST send-to-waiting
     @PostMapping("/tasks/{id}/send-to-waiting")
-    public TaskDetail sendToWaiting(@PathVariable String id, @RequestBody(required = false) Map<String, String> body){
-        if(body == null){
-            throw new ApiException(ErrorCode.VALIDATION_ERROR, null, Map.of("field", "waitingReason"));
-        }
-        
-        String waitingReason = body.get("waitingReason");
-        if(waitingReason == null || waitingReason.isBlank()){
+    public TaskDetail sendToWaiting(
+        @PathVariable String id, 
+        @RequestBody(required = false) SendToWaitingRequest body
+    ){    
+        if(body == null || body.waitingReason() == null || body.waitingReason().isBlank()){
             throw new ApiException(ErrorCode.VALIDATION_ERROR, null, Map.of("field", "waitingReason"));
         }
         
