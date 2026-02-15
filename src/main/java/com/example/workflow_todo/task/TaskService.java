@@ -53,20 +53,11 @@ public class TaskService {
 
     // 状態：SUSPENDED->NORMAL
     public TaskDetail resume(String id){
-        // 指定されたidのタスクがない
-        Task task = store.get(id);
-        if(task == null){
-            throw new ApiException(ErrorCode.NOT_FOUND, "タスクが見つかりません。");
-        }
+        // 指定されたidからタスクの取得とNOT_FOUND判定
+        Task task = getRequiredTask(id);
 
         // 親子制約：親がSUSPENDEDかDONEの子は操作禁止
-        String parentId = task.getParentId();
-        if(parentId != null){
-            Task parent = store.get(parentId);
-            if(parent != null && (parent.getStatus() == TaskStatus.SUSPENDED || parent.getStatus() == TaskStatus.DONE)){
-                throw new ApiException(ErrorCode.INVALID_STATE, "タスク状態が不正です。");
-            }
-        }
+        checkParentState(task);
 
         // 状態がSUSPENDED以外
         if(task.getStatus() != TaskStatus.SUSPENDED){
@@ -79,20 +70,11 @@ public class TaskService {
 
     // 状態：NORMAL->SUSPENDED
     public TaskDetail suspend(String id){
-        // 指定されたidのタスクがない
-        Task task = store.get(id);
-        if(task == null){
-            throw new ApiException(ErrorCode.NOT_FOUND, "タスクが見つかりません。");
-        }
+        // 指定されたidからタスクの取得とNOT_FOUND判定
+        Task task = getRequiredTask(id);
 
         // 親子制約：親がSUSPENDEDかDONEの子は操作禁止
-        String parentId = task.getParentId();
-        if(parentId != null){
-            Task parent = store.get(parentId);
-            if(parent != null && (parent.getStatus() == TaskStatus.SUSPENDED || parent.getStatus() == TaskStatus.DONE)){
-                throw new ApiException(ErrorCode.INVALID_STATE, "タスク状態が不正です。");
-            }
-        }
+        checkParentState(task);
 
         // 状態がNORMALかWAITING_REVIEWならSUSPEND以外
         TaskStatus status = task.getStatus();
@@ -106,20 +88,11 @@ public class TaskService {
 
     // 状態：NORMAL->WAITING_REVIEW
     public TaskDetail sendToWaiting(String id){
-        // 指定されたidのタスクがない
-        Task task = store.get(id);
-        if(task == null){
-            throw new ApiException(ErrorCode.NOT_FOUND, "タスクが見つかりません。");
-        }
+        // 指定されたidからタスクの取得とNOT_FOUND判定
+        Task task = getRequiredTask(id);
 
         // 親子制約：親がSUSPENDEDかDONEの子は操作禁止
-        String parentId = task.getParentId();
-        if(parentId != null){
-            Task parent = store.get(parentId);
-            if(parent != null && (parent.getStatus() == TaskStatus.SUSPENDED || parent.getStatus() == TaskStatus.DONE)){
-                throw new ApiException(ErrorCode.INVALID_STATE, null);
-            }
-        }
+        checkParentState(task);
 
         // 状態がNORMAL以外
         if(task.getStatus() != TaskStatus.NORMAL){
@@ -132,20 +105,11 @@ public class TaskService {
 
     // 状態：WAITING_REVIEW->NORMAL
     public TaskDetail reject(String id){
-        // 指定されたidのタスクがない
-        Task task = store.get(id);
-        if(task == null){
-            throw new ApiException(ErrorCode.NOT_FOUND, "タスクが見つかりません。");
-        }
+        // 指定されたidからタスクの取得とNOT_FOUND判定
+        Task task = getRequiredTask(id);
 
         // 親子制約：親がSUSPENDEDかDONEの子は操作禁止
-        String parentId = task.getParentId();
-        if(parentId != null){
-            Task parent = store.get(parentId);
-            if(parent != null && (parent.getStatus() == TaskStatus.SUSPENDED || parent.getStatus() == TaskStatus.DONE)){
-                throw new ApiException(ErrorCode.INVALID_STATE, null);
-            }
-        }
+        checkParentState(task);
 
         // 状態がWAITING_REVIEW以外
         if(task.getStatus() != TaskStatus.WAITING_REVIEW){
@@ -158,20 +122,11 @@ public class TaskService {
 
     // 状態：WAITING_REVIEW
     public TaskDetail approve(String id){
-        // 指定されたidのタスクがない
-        Task task = store.get(id);
-        if(task == null){
-            throw new ApiException(ErrorCode.NOT_FOUND, null);
-        }
+        // 指定されたidからタスクの取得とNOT_FOUND判定
+        Task task = getRequiredTask(id);
 
         // 親子制約：親がSUSPENDEDかDONEの子は操作禁止
-        String parentId = task.getParentId();
-        if(parentId != null){
-            Task parent = store.get(parentId);
-            if(parent != null && (parent.getStatus() == TaskStatus.SUSPENDED || parent.getStatus() == TaskStatus.DONE)){
-                throw new ApiException(ErrorCode.INVALID_STATE, null);
-            }
-        }
+        checkParentState(task);
 
         // WAITING_REVIEW以外
         if(task.getStatus() != TaskStatus.WAITING_REVIEW){
@@ -191,20 +146,11 @@ public class TaskService {
 
     // 状態：NORMAL
     public TaskDetail complete(String id){
-        // 指定されたidのタスクがない
-        Task task = store.get(id);
-        if(task == null){
-            throw new ApiException(ErrorCode.NOT_FOUND, null);
-        }
+        // 指定されたidからタスクの取得とNOT_FOUND判定
+        Task task = getRequiredTask(id);
 
         // 親子制約：親がSUSPENDEDかDONEの子は操作禁止
-        String parentId = task.getParentId();
-        if(parentId != null){
-            Task parent = store.get(parentId);
-            if(parent != null && (parent.getStatus() == TaskStatus.SUSPENDED || parent.getStatus() == TaskStatus.DONE)){
-                throw new ApiException(ErrorCode.INVALID_STATE, null);
-            }
-        }
+        checkParentState(task);
 
         // NORMAL以外
         if(task.getStatus() != TaskStatus.NORMAL){
@@ -223,13 +169,24 @@ public class TaskService {
     }
 
     
-    // NOT_FOUNDのタスク
-    private Task getNotFoundTask(String id){
+    // idからタスクを取得（ないならNOT_FOUND）
+    private Task getRequiredTask(String id){
         Task task = store.get(id);
         if(task == null){
             throw new ApiException(ErrorCode.NOT_FOUND, null);
         }
         return task;
+    }
+
+    // 親子制約のチェック(親の状態チェック)
+    private void checkParentState(Task task){
+        String parentId = task.getParentId();
+        if(parentId == null) return;
+
+        Task parent = store.get(parentId);
+        if(parent != null && (parent.getStatus() == TaskStatus.SUSPENDED || parent.getStatus() == TaskStatus.DONE)){
+            throw new ApiException(ErrorCode.INVALID_STATE, null);
+        }
     }
 
     // 未完了の子タスク取得
