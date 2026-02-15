@@ -45,4 +45,10 @@ public class TaskActionController {
     public TaskDetail approve(@PathVariable String id){
         return taskService.approve(id);
     }
+
+    // POST complete
+    @PostMapping("/tasks/{id}/complete")
+    public TaskDetail complete(@PathVariable String id){
+        return taskService.complete(id);
+    }
 }

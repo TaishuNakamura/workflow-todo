@@ -24,20 +24,31 @@ public class TaskService {
     // コンストラクタ
     public TaskService(){
         // 仮データ
-        store.put("1", new Task("1", TaskStatus.SUSPENDED));     
-        store.put("2", new Task("2", TaskStatus.WAITING_REVIEW));        
+        // 単体タスク
+        store.put("T-N",  new Task("T-N",  TaskStatus.NORMAL));         // suspend, send-to-waiting, complete
+        store.put("T-S",  new Task("T-S",  TaskStatus.SUSPENDED));      // resume
+        store.put("T-W",  new Task("T-W",  TaskStatus.WAITING_REVIEW)); // approve, reject
+        store.put("T-D",  new Task("T-D",  TaskStatus.DONE));           // INVALID_STATE確認用（任意）
 
-        store.put("P1", new Task("P1", TaskStatus.SUSPENDED));
-        store.put("C1", new Task("C1", "P1", TaskStatus.SUSPENDED));
+        // 親子制約（親がSUSPENDEDなら子操作禁止）
+        store.put("P-S", new Task("P-S", TaskStatus.SUSPENDED));
+        store.put("C-S", new Task("C-S", "P-S", TaskStatus.NORMAL)); // 親SUSPENDEDなので子の操作は基本409
 
-        store.put("P2", new Task("P2", TaskStatus.NORMAL));
-        store.put("C2", new Task("C2", "P2", TaskStatus.SUSPENDED));
+        // 親子制約（親がDONEなら子操作禁止）
+        store.put("P-D", new Task("P-D", TaskStatus.DONE));
+        store.put("C-D", new Task("C-D", "P-D", TaskStatus.NORMAL)); // 親DONEなので子の操作は基本409
 
-        store.put("P3", new Task("P3", TaskStatus.DONE));
-        store.put("C3", new Task("C3", "P3", TaskStatus.NORMAL));
+        // CHILDREN_INCOMPLETE（approve用：親WAITING_REVIEW）
+        store.put("P-A", new Task("P-A", TaskStatus.WAITING_REVIEW)); // approve対象
+        store.put("C-A", new Task("C-A", "P-A", TaskStatus.NORMAL));  // 未完了 → approveでCHILDREN_INCOMPLETE
 
-        store.put("P4", new Task("P4", TaskStatus.WAITING_REVIEW));
-        store.put("C4", new Task("C4", "P4", TaskStatus.NORMAL));
+        // CHILDREN_INCOMPLETE（complete用：親NORMAL）
+        store.put("P-C", new Task("P-C", TaskStatus.NORMAL));        // complete対象
+        store.put("C-C", new Task("C-C", "P-C", TaskStatus.NORMAL)); // 未完了 → completeでCHILDREN_INCOMPLETE
+
+        // 親子：正常に完了できる親（子がDONE済み）
+        store.put("P-OK", new Task("P-OK", TaskStatus.NORMAL));
+        store.put("C-OK", new Task("C-OK", "P-OK", TaskStatus.DONE)); // これで P-OK は complete 成功可能
     }
 
     // 状態：SUSPENDED->NORMAL
@@ -178,7 +189,49 @@ public class TaskService {
         return new TaskDetail(task.getId(), task.getStatus(), task.getUpdatedAt());
     }
 
+    // 状態：NORMAL
+    public TaskDetail complete(String id){
+        // 指定されたidのタスクがない
+        Task task = store.get(id);
+        if(task == null){
+            throw new ApiException(ErrorCode.NOT_FOUND, null);
+        }
+
+        // 親子制約：親がSUSPENDEDかDONEの子は操作禁止
+        String parentId = task.getParentId();
+        if(parentId != null){
+            Task parent = store.get(parentId);
+            if(parent != null && (parent.getStatus() == TaskStatus.SUSPENDED || parent.getStatus() == TaskStatus.DONE)){
+                throw new ApiException(ErrorCode.INVALID_STATE, null);
+            }
+        }
+
+        // NORMAL以外
+        if(task.getStatus() != TaskStatus.NORMAL){
+            throw new ApiException(ErrorCode.INVALID_STATE, null);
+        }
+
+        // 未完了の子タスクあり
+        Map<String, Object> details = incompleteChildrenDetails(task.getId());
+        List<?> list = (List<?>) details.get("incompleteChildren");
+        if(!list.isEmpty()){
+            throw new ApiException(ErrorCode.CHILDREN_INCOMPLETE, null, details);
+        }
+
+        task.setStatus(TaskStatus.DONE);
+        return new TaskDetail(task.getId(), task.getStatus(), task.getUpdatedAt());
+    }
+
     
+    // NOT_FOUNDのタスク
+    private Task getNotFoundTask(String id){
+        Task task = store.get(id);
+        if(task == null){
+            throw new ApiException(ErrorCode.NOT_FOUND, null);
+        }
+        return task;
+    }
+
     // 未完了の子タスク取得
     private Map<String, Object> incompleteChildrenDetails(String parentId){
         List<IncompleteChildSummary> incompleteChildren = new ArrayList<>();
