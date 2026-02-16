@@ -1,5 +1,6 @@
 package com.example.workflow_todo.task;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import com.example.workflow_todo.api.ApiException;
 import com.example.workflow_todo.api.ErrorCode;
+import com.example.workflow_todo.api.ValidationFieldError;
 
 
 /*
@@ -35,7 +37,7 @@ public class TaskActionController {
         @PathVariable String id, 
         @RequestBody(required = false) SuspendRequest body){
         if(body == null || body.progressNote() == null || body.progressNote().isBlank()){
-            throw new ApiException(ErrorCode.VALIDATION_ERROR, null, Map.of("field", "progressNote"));
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, null, Map.of("fields", List.of(new ValidationFieldError("progressNote", "空入力は禁止。"))));
         }
         
         return taskService.suspend(id);
@@ -48,7 +50,7 @@ public class TaskActionController {
         @RequestBody(required = false) SendToWaitingRequest body
     ){    
         if(body == null || body.waitingReason() == null || body.waitingReason().isBlank()){
-            throw new ApiException(ErrorCode.VALIDATION_ERROR, null, Map.of("field", "waitingReason"));
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, null, Map.of("fields", List.of(new ValidationFieldError("waitingReason", "空入力は禁止。"))));
         }
         
         return taskService.sendToWaiting(id);

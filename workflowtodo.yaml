@@ -188,7 +188,7 @@ components:
               value:
                 code: VALIDATION_ERROR
                 message: バリデーションエラー
-                details: null
+                details: fields
 
     Error404:
       description: 指定されたリソースが存在しない
