@@ -25,30 +25,31 @@ public class TaskService {
     public TaskService(){
         // 仮データ
         // 単体タスク
-        store.put("T-N",  new Task("T-N",  TaskStatus.NORMAL));         // suspend, send-to-waiting, complete
-        store.put("T-S",  new Task("T-S",  TaskStatus.SUSPENDED));      // resume
-        store.put("T-W",  new Task("T-W",  TaskStatus.WAITING_REVIEW)); // approve, reject
-        store.put("T-D",  new Task("T-D",  TaskStatus.DONE));           // INVALID_STATE確認用（任意）
+        // 単体タスク
+    store.put("T-N",  new Task("T-N",  "T-N",  TaskStatus.NORMAL));         // suspend, send-to-waiting, complete
+    store.put("T-S",  new Task("T-S",  "T-S",  TaskStatus.SUSPENDED));      // resume
+    store.put("T-W",  new Task("T-W",  "T-W",  TaskStatus.WAITING_REVIEW)); // approve, reject
+    store.put("T-D",  new Task("T-D",  "T-D",  TaskStatus.DONE));           // INVALID_STATE確認用（任意）
 
-        // 親子制約（親がSUSPENDEDなら子操作禁止）
-        store.put("P-S", new Task("P-S", TaskStatus.SUSPENDED));
-        store.put("C-S", new Task("C-S", "P-S", TaskStatus.NORMAL)); // 親SUSPENDEDなので子の操作は基本409
+    // 親子制約（親がSUSPENDEDなら子操作禁止）
+    store.put("P-S", new Task("P-S", "P-S", TaskStatus.SUSPENDED));
+    store.put("C-S", new Task("C-S", "P-S", "C-S", TaskStatus.NORMAL)); // 親SUSPENDEDなので子の操作は基本409
 
-        // 親子制約（親がDONEなら子操作禁止）
-        store.put("P-D", new Task("P-D", TaskStatus.DONE));
-        store.put("C-D", new Task("C-D", "P-D", TaskStatus.NORMAL)); // 親DONEなので子の操作は基本409
+    // 親子制約（親がDONEなら子操作禁止）
+    store.put("P-D", new Task("P-D", "P-D", TaskStatus.DONE));
+    store.put("C-D", new Task("C-D", "P-D", "C-D", TaskStatus.NORMAL)); // 親DONEなので子の操作は基本409
 
-        // CHILDREN_INCOMPLETE（approve用：親WAITING_REVIEW）
-        store.put("P-A", new Task("P-A", TaskStatus.WAITING_REVIEW)); // approve対象
-        store.put("C-A", new Task("C-A", "P-A", TaskStatus.NORMAL));  // 未完了 → approveでCHILDREN_INCOMPLETE
+    // CHILDREN_INCOMPLETE（approve用：親WAITING_REVIEW）
+    store.put("P-A", new Task("P-A", "P-A", TaskStatus.WAITING_REVIEW)); // approve対象
+    store.put("C-A", new Task("C-A", "P-A", "子タスクA", TaskStatus.NORMAL));  // ← title差分確認用に名前を入れた
 
-        // CHILDREN_INCOMPLETE（complete用：親NORMAL）
-        store.put("P-C", new Task("P-C", TaskStatus.NORMAL));        // complete対象
-        store.put("C-C", new Task("C-C", "P-C", TaskStatus.NORMAL)); // 未完了 → completeでCHILDREN_INCOMPLETE
+    // CHILDREN_INCOMPLETE（complete用：親NORMAL）
+    store.put("P-C", new Task("P-C", "P-C", TaskStatus.NORMAL));        // complete対象
+    store.put("C-C", new Task("C-C", "P-C", "子タスクC", TaskStatus.NORMAL)); // ← title差分確認用
 
-        // 親子：正常に完了できる親（子がDONE済み）
-        store.put("P-OK", new Task("P-OK", TaskStatus.NORMAL));
-        store.put("C-OK", new Task("C-OK", "P-OK", TaskStatus.DONE)); // これで P-OK は complete 成功可能
+    // 親子：正常に完了できる親（子がDONE済み）
+    store.put("P-OK", new Task("P-OK", "P-OK", TaskStatus.NORMAL));
+    store.put("C-OK", new Task("C-OK", "P-OK", "C-OK", TaskStatus.DONE)); // これで P-OK は complete 成功可能
     }
 
     // 状態：SUSPENDED->NORMAL
@@ -65,7 +66,7 @@ public class TaskService {
         }
 
         task.setStatus(TaskStatus.NORMAL);
-        return new TaskDetail(task.getId(), task.getStatus(), task.getUpdatedAt());
+        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
     }
 
     // 状態：NORMAL->SUSPENDED
@@ -83,7 +84,7 @@ public class TaskService {
         }
 
         task.setStatus(TaskStatus.SUSPENDED);
-        return new TaskDetail(task.getId(), task.getStatus(), task.getUpdatedAt());
+        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
     }
 
     // 状態：NORMAL->WAITING_REVIEW
@@ -100,7 +101,7 @@ public class TaskService {
         }
         
         task.setStatus(TaskStatus.WAITING_REVIEW);
-        return new TaskDetail(task.getId(), task.getStatus(), task.getUpdatedAt());
+        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
     }
 
     // 状態：WAITING_REVIEW->NORMAL
@@ -117,7 +118,7 @@ public class TaskService {
         }
 
         task.setStatus(TaskStatus.NORMAL);
-        return new TaskDetail(task.getId(), task.getStatus(), task.getUpdatedAt());
+        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
     }
 
     // 状態：WAITING_REVIEW
@@ -141,7 +142,7 @@ public class TaskService {
         }
 
         task.setStatus(TaskStatus.DONE);
-        return new TaskDetail(task.getId(), task.getStatus(), task.getUpdatedAt());
+        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
     }
 
     // 状態：NORMAL
@@ -165,7 +166,7 @@ public class TaskService {
         }
 
         task.setStatus(TaskStatus.DONE);
-        return new TaskDetail(task.getId(), task.getStatus(), task.getUpdatedAt());
+        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
     }
 
     
@@ -195,7 +196,7 @@ public class TaskService {
 
         for(Task t : store.values()){
             if(parentId.equals(t.getParentId()) && t.getStatus() != TaskStatus.DONE){
-                incompleteChildren.add(new IncompleteChildSummary(t.getId(), t.getId(), t.getStatus()));
+                incompleteChildren.add(new IncompleteChildSummary(t.getId(), t.getTitle(), t.getStatus()));
             }
         }
 

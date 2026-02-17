@@ -7,6 +7,7 @@ import java.time.OffsetDateTime;
  */
 public record TaskDetail(
     String id,
+    String title,
     TaskStatus status,
     OffsetDateTime updatedAt
 ) {}
