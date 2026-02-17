@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.workflow_todo.api.ApiException;
 import com.example.workflow_todo.api.ErrorCode;
+import com.example.workflow_todo.api.ValidationFieldError;
 
 /*
     Serviceクラス。(仕様・ルールを実行)
@@ -203,5 +204,17 @@ public class TaskService {
         Map<String, Object> details = new HashMap<>();
         details.put("incompleteChildren", incompleteChildren);
         return details;
+    }
+
+    // titleの変更
+    public TaskDetail rename(String id, String title){
+        Task task = getRequiredTask(id);
+
+        if(title == null || title.isBlank()){
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, null, Map.of("fields", List.of(new ValidationFieldError("title", "空入力は禁止。"))));
+        }
+
+        task.setTitle(title);
+        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
     }
 }

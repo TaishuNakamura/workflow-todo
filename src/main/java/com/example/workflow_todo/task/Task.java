@@ -9,7 +9,7 @@ import java.time.OffsetDateTime;
 public class Task {
     private final String id;
     private final String parentId;
-    private final String title;
+    private String title;
     private TaskStatus status;
     private OffsetDateTime updatedAt;
 
@@ -36,6 +36,11 @@ public class Task {
     // setter
     public void setStatus(TaskStatus status){
         this.status = status;
+        this.updatedAt = OffsetDateTime.now();
+    }
+
+    public void setTitle(String title){
+        this.title = title;
         this.updatedAt = OffsetDateTime.now();
     }
 }

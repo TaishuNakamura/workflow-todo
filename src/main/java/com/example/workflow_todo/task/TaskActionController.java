@@ -3,6 +3,7 @@ package com.example.workflow_todo.task;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -72,5 +73,11 @@ public class TaskActionController {
     @PostMapping("/tasks/{id}/complete")
     public TaskDetail complete(@PathVariable String id){
         return taskService.complete(id);
+    }
+
+    // PATCH title
+    @PatchMapping("/tasks/{id}/title")
+    public TaskDetail rename(@PathVariable String id, @RequestBody(required = false) String body){
+        return taskService.rename(id, body);
     }
 }
