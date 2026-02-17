@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,7 @@ import com.example.workflow_todo.api.ValidationFieldError;
 public class TaskService {
     
     private final Map<String, Task> store = new ConcurrentHashMap<>();
+    private final AtomicLong seq = new AtomicLong(1);
 
     // コンストラクタ
     public TaskService(){
@@ -215,6 +218,26 @@ public class TaskService {
         }
 
         task.setTitle(title);
+        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
+    }
+
+    // タスクの作成
+    public TaskDetail create(String title, String parentId){
+        // parentId が指定されたら親のチェック
+        if(parentId != null){
+            Task parent = store.get(parentId);
+            if(parent == null){
+                throw new ApiException(ErrorCode.NOT_FOUND, null);
+            }
+        }
+            
+        String id = UUID.randomUUID().toString();
+        Task task = (parentId == null)
+            ? new Task(id, title, TaskStatus.NORMAL)
+            : new Task(id, parentId, title, TaskStatus.NORMAL);
+        
+        store.put(id, task);
+
         return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
     }
 }
