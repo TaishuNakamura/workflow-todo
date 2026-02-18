@@ -241,9 +241,29 @@ public class TaskService {
         return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
     }
 
-    // タスクの取得
+    // タスクの１件の取得
     public TaskDetail getTask(String id){
         Task task = getRequiredTask(id);
         return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
+    }
+
+    // 全件タスクの取得
+    public List<TaskDetail>listByParentId(String parentId){
+        // parentId指定時のみ親の存在チェック
+        if(parentId != null){
+            if(store.get(parentId) == null){
+                throw new ApiException(ErrorCode.NOT_FOUND, null);
+            }
+        }
+
+        // タスクを新しいList:resultに格納
+        List<TaskDetail> result = new ArrayList<>();
+        for(Task task : store.values()){
+            if(parentId == null || parentId.equals(task.getParentId())){
+                result.add(new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt()));
+            }
+        }
+
+        return result;
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.example.workflow_todo.api.ApiException;
@@ -104,9 +105,19 @@ public class TaskActionController {
         return taskService.rename(id, body);
     }
 
-    // GET tasks/{id}
+    // GET tasks/{id}  1件のタスクの取得
     @GetMapping("/tasks/{id}")
     public TaskDetail get(@PathVariable String id){
         return taskService.getTask(id);
+    }
+
+    // GET tasks
+    @GetMapping("/tasks")
+    public List<TaskDetail> list(@RequestParam(required = false) String parentId){
+        if(parentId != null && parentId.isBlank()){
+            parentId = null;
+        }
+
+        return taskService.listByParentId(parentId);
     }
 }
