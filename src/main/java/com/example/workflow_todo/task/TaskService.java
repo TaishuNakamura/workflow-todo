@@ -240,4 +240,10 @@ public class TaskService {
 
         return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
     }
+
+    // タスクの取得
+    public TaskDetail getTask(String id){
+        Task task = getRequiredTask(id);
+        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
+    }
 }

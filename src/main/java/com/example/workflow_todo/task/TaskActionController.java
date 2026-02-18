@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -101,5 +102,11 @@ public class TaskActionController {
     @PatchMapping("/tasks/{id}/title")
     public TaskDetail rename(@PathVariable String id, @RequestBody(required = false) String body){
         return taskService.rename(id, body);
+    }
+
+    // GET tasks/{id}
+    @GetMapping("/tasks/{id}")
+    public TaskDetail get(@PathVariable String id){
+        return taskService.getTask(id);
     }
 }
