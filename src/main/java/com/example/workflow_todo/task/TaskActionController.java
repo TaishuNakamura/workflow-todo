@@ -114,10 +114,6 @@ public class TaskActionController {
     // GET tasks
     @GetMapping("/tasks")
     public List<TaskDetail> list(@RequestParam(required = false) String parentId){
-        if(parentId != null && parentId.isBlank()){
-            parentId = null;
-        }
-
-        return taskService.listByParentId(parentId);
+        return taskService.listAll();
     }
 }

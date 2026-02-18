@@ -247,19 +247,27 @@ public class TaskService {
         return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
     }
 
-    // 全件タスクの取得
-    public List<TaskDetail>listByParentId(String parentId){
-        // parentId指定時のみ親の存在チェック
-        if(parentId != null){
-            if(store.get(parentId) == null){
-                throw new ApiException(ErrorCode.NOT_FOUND, null);
-            }
-        }
-
-        // タスクを新しいList:resultに格納
+    // タスクの全件取得
+    public List<TaskDetail>listAll(){
         List<TaskDetail> result = new ArrayList<>();
         for(Task task : store.values()){
-            if(parentId == null || parentId.equals(task.getParentId())){
+            result.add(new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt()));
+        }
+
+        return result;
+    }
+
+    // 子タスクの取得
+    public List<TaskDetail>listByParentId(String parentId){
+        // 親の存在チェック
+        if(store.get(parentId) == null){
+            throw new ApiException(ErrorCode.NOT_FOUND, null);
+        }
+
+        // 子タスクを新しいList:resultに格納
+        List<TaskDetail> result = new ArrayList<>();
+        for(Task task : store.values()){
+            if(parentId.equals(task.getParentId())){
                 result.add(new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt()));
             }
         }
