@@ -1,12 +1,12 @@
 package com.example.workflow_todo.task;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.stereotype.Service;
 
@@ -23,7 +23,6 @@ import com.example.workflow_todo.api.ValidationFieldError;
 public class TaskService {
     
     private final Map<String, Task> store = new ConcurrentHashMap<>();
-    private final AtomicLong seq = new AtomicLong(1);
 
     // コンストラクタ
     public TaskService(){
@@ -70,7 +69,7 @@ public class TaskService {
         }
 
         task.setStatus(TaskStatus.NORMAL);
-        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
+        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt());
     }
 
     // 状態：NORMAL->SUSPENDED
@@ -88,7 +87,7 @@ public class TaskService {
         }
 
         task.setStatus(TaskStatus.SUSPENDED);
-        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
+        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt());
     }
 
     // 状態：NORMAL->WAITING_REVIEW
@@ -105,7 +104,7 @@ public class TaskService {
         }
         
         task.setStatus(TaskStatus.WAITING_REVIEW);
-        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
+        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt());
     }
 
     // 状態：WAITING_REVIEW->NORMAL
@@ -122,7 +121,7 @@ public class TaskService {
         }
 
         task.setStatus(TaskStatus.NORMAL);
-        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
+        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt());
     }
 
     // 状態：WAITING_REVIEW
@@ -146,7 +145,7 @@ public class TaskService {
         }
 
         task.setStatus(TaskStatus.DONE);
-        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
+        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt());
     }
 
     // 状態：NORMAL
@@ -170,7 +169,7 @@ public class TaskService {
         }
 
         task.setStatus(TaskStatus.DONE);
-        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
+        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt());
     }
 
     
@@ -218,7 +217,7 @@ public class TaskService {
         }
 
         task.setTitle(title);
-        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
+        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt());
     }
 
     // タスクの作成
@@ -238,20 +237,24 @@ public class TaskService {
         
         store.put(id, task);
 
-        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
+        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt());
     }
 
     // タスクの１件の取得
     public TaskDetail getTask(String id){
         Task task = getRequiredTask(id);
-        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt());
+        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt());
     }
 
     // タスクの全件取得
     public List<TaskDetail>listAll(){
+        // 事前にタスクをソート
+        List<Task> tasks = new ArrayList<>(store.values());
+        tasks.sort(Comparator.comparing(Task::getCreatedAt));
+
         List<TaskDetail> result = new ArrayList<>();
-        for(Task task : store.values()){
-            result.add(new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt()));
+        for(Task task : tasks){
+            result.add(new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt()));
         }
 
         return result;
@@ -268,7 +271,7 @@ public class TaskService {
         List<TaskDetail> result = new ArrayList<>();
         for(Task task : store.values()){
             if(parentId.equals(task.getParentId())){
-                result.add(new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getUpdatedAt()));
+                result.add(new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt()));
             }
         }
 

@@ -9,5 +9,6 @@ public record TaskDetail(
     String id,
     String title,
     TaskStatus status,
+    OffsetDateTime createdAt,
     OffsetDateTime updatedAt
 ) {}

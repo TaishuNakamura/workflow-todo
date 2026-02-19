@@ -11,6 +11,7 @@ public class Task {
     private final String parentId;
     private String title;
     private TaskStatus status;
+    private final OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 
     // コンストラクタ(親IDあり)
@@ -19,7 +20,10 @@ public class Task {
         this.parentId = parentId;
         this.title = title;
         this.status = status;
-        this.updatedAt = OffsetDateTime.now();
+
+        OffsetDateTime now = OffsetDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
     }
     // コンストラクタ(親IDなし)
     public Task(String id, String title, TaskStatus status){
@@ -31,6 +35,7 @@ public class Task {
     public String getParentId(){ return parentId; }
     public String getTitle(){ return title; }
     public TaskStatus getStatus(){ return status; }
+    public OffsetDateTime getCreatedAt(){ return createdAt; }
     public OffsetDateTime getUpdatedAt(){ return updatedAt; }
 
     // setter
