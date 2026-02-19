@@ -249,8 +249,9 @@ public class TaskService {
     // タスクの全件取得
     public List<TaskDetail>listAll(){
         // 事前にタスクをソート
+        // createdAt 昇順　で、同一ならid昇順
         List<Task> tasks = new ArrayList<>(store.values());
-        tasks.sort(Comparator.comparing(Task::getCreatedAt));
+        tasks.sort(Comparator.comparing(Task::getCreatedAt).thenComparing(Task::getId));
 
         List<TaskDetail> result = new ArrayList<>();
         for(Task task : tasks){
