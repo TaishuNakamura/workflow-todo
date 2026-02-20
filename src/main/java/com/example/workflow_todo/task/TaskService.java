@@ -243,7 +243,7 @@ public class TaskService {
     // タスクの１件の取得
     public TaskDetail getTask(String id){
         Task task = getRequiredTask(id);
-        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt());
+        return toDetail(task);
     }
 
     // タスクの全件取得
@@ -255,8 +255,9 @@ public class TaskService {
 
         List<TaskDetail> result = new ArrayList<>();
         for(Task task : tasks){
-            result.add(new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt()));
+            result.add(toDetail(task));
         }
+
 
         return result;
     }
@@ -268,11 +269,17 @@ public class TaskService {
             throw new ApiException(ErrorCode.NOT_FOUND, null);
         }
 
+        // 事前にタスクをソート
+        // createdAt 昇順　で、同一ならid昇順
+        List<Task> tasks = new ArrayList<>(store.values());
+        tasks.sort(Comparator.comparing(Task::getCreatedAt).thenComparing(Task::getId));
+
+
         // 子タスクを新しいList:resultに格納
         List<TaskDetail> result = new ArrayList<>();
-        for(Task task : store.values()){
+        for(Task task : tasks){
             if(parentId.equals(task.getParentId())){
-                result.add(new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt()));
+                result.add(toDetail(task));
             }
         }
 
