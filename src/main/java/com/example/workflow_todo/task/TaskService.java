@@ -69,7 +69,7 @@ public class TaskService {
         }
 
         task.setStatus(TaskStatus.NORMAL);
-        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt());
+        return toDetail(task);
     }
 
     // 状態：NORMAL->SUSPENDED
@@ -87,7 +87,7 @@ public class TaskService {
         }
 
         task.setStatus(TaskStatus.SUSPENDED);
-        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt());
+        return toDetail(task);
     }
 
     // 状態：NORMAL->WAITING_REVIEW
@@ -104,7 +104,7 @@ public class TaskService {
         }
         
         task.setStatus(TaskStatus.WAITING_REVIEW);
-        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt());
+        return toDetail(task);
     }
 
     // 状態：WAITING_REVIEW->NORMAL
@@ -121,7 +121,7 @@ public class TaskService {
         }
 
         task.setStatus(TaskStatus.NORMAL);
-        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt());
+        return toDetail(task);
     }
 
     // 状態：WAITING_REVIEW
@@ -145,7 +145,7 @@ public class TaskService {
         }
 
         task.setStatus(TaskStatus.DONE);
-        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt());
+        return toDetail(task);
     }
 
     // 状態：NORMAL
@@ -169,7 +169,7 @@ public class TaskService {
         }
 
         task.setStatus(TaskStatus.DONE);
-        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt());
+        return toDetail(task);
     }
 
     
@@ -217,7 +217,7 @@ public class TaskService {
         }
 
         task.setTitle(title);
-        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt());
+        return toDetail(task);
     }
 
     // タスクの作成
@@ -237,7 +237,7 @@ public class TaskService {
         
         store.put(id, task);
 
-        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt());
+        return toDetail(task);
     }
 
     // タスクの１件の取得
@@ -277,5 +277,10 @@ public class TaskService {
         }
 
         return result;
+    }
+
+    // TaskDetail受け渡し用
+    private TaskDetail toDetail(Task task){
+        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt());
     }
 }
