@@ -9,6 +9,7 @@ public record TaskDetail(
     String id,
     String title,
     TaskStatus status,
+    Priority priority,
     OffsetDateTime createdAt,
     OffsetDateTime updatedAt
 ) {}

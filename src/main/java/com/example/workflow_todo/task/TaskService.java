@@ -1,6 +1,7 @@
 package com.example.workflow_todo.task;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -251,7 +252,18 @@ public class TaskService {
         // 事前にタスクをソート
         // createdAt 昇順　で、同一ならid昇順
         List<Task> tasks = new ArrayList<>(store.values());
-        tasks.sort(Comparator.comparing(Task::getCreatedAt).thenComparing(Task::getId));
+        Collections.sort(tasks, new Comparator<Task>(){
+            @Override
+            public int compare(Task a, Task b){
+                int cmp = Integer.compare(b.getPriority().getRank(), a.getPriority().getRank());
+                if(cmp != 0) return cmp;
+
+                cmp = b.getCreatedAt().compareTo(a.getCreatedAt());
+                if(cmp != 0) return cmp;
+
+                return a.getId().compareTo(b.getId());
+            }
+        });
 
         List<TaskDetail> result = new ArrayList<>();
         for(Task task : tasks){
@@ -272,7 +284,18 @@ public class TaskService {
         // 事前にタスクをソート
         // createdAt 昇順　で、同一ならid昇順
         List<Task> tasks = new ArrayList<>(store.values());
-        tasks.sort(Comparator.comparing(Task::getCreatedAt).thenComparing(Task::getId));
+        Collections.sort(tasks, new Comparator<Task>(){
+            @Override
+            public int compare(Task a, Task b){
+                int cmp = Integer.compare(b.getPriority().getRank(), a.getPriority().getRank());
+                if(cmp != 0) return cmp;
+
+                cmp = b.getCreatedAt().compareTo(a.getCreatedAt());
+                if(cmp != 0) return cmp;
+
+                return a.getId().compareTo(b.getId());
+            }
+        });
 
 
         // 子タスクを新しいList:resultに格納
@@ -288,6 +311,6 @@ public class TaskService {
 
     // TaskDetail受け渡し用
     private TaskDetail toDetail(Task task){
-        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getCreatedAt(), task.getUpdatedAt());
+        return new TaskDetail(task.getId(), task.getTitle(), task.getStatus(), task.getPriority(), task.getCreatedAt(), task.getUpdatedAt());
     }
 }

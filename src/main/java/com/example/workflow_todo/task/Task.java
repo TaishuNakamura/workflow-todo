@@ -11,23 +11,29 @@ public class Task {
     private final String parentId;
     private String title;
     private TaskStatus status;
+    private final Priority priority;
     private final OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 
     // コンストラクタ(親IDあり)
-    public Task(String id, String parentId, String title, TaskStatus status){
+    public Task(String id, String parentId, String title, TaskStatus status, Priority priority){
         this.id = id;
         this.parentId = parentId;
         this.title = title;
         this.status = status;
+        this.priority = (priority == null) ? Priority.MED : priority; // 未指定の場合はMED
 
         OffsetDateTime now = OffsetDateTime.now();
         this.createdAt = now;
         this.updatedAt = now;
     }
-    // コンストラクタ(親IDなし)
+    // コンストラクタ(親IDあり),priority省略
+    public Task(String id, String parentId, String title, TaskStatus status){
+        this(id, parentId, title, status, null);
+    }
+    // コンストラクタ(親IDなし),priority省略
     public Task(String id, String title, TaskStatus status){
-        this(id, null, title, status);
+        this(id, null, title, status, null);
     }
     
     // getter
@@ -35,6 +41,7 @@ public class Task {
     public String getParentId(){ return parentId; }
     public String getTitle(){ return title; }
     public TaskStatus getStatus(){ return status; }
+    public Priority getPriority(){ return priority; }
     public OffsetDateTime getCreatedAt(){ return createdAt; }
     public OffsetDateTime getUpdatedAt(){ return updatedAt; }
 
