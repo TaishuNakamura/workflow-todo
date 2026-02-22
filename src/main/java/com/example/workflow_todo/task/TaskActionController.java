@@ -96,7 +96,23 @@ public class TaskActionController {
             parentId = null;
         }
 
-        return taskService.create(title, parentId);
+        // priorityのエラー処理
+        Priority priority;
+        String p = body.priority();
+
+        if(p == null || p.isBlank()){
+            priority = Priority.MED;
+        }else {
+            try {
+                priority = Priority.valueOf(p);
+            }catch(IllegalArgumentException e){
+                // VALIDATION_ERRORをdetails.fieldsに
+                Map<String, Object> details = Map.of("fields", List.of(Map.of("name", "priority", "reason", "LOW/MED/HIGHのいずれかを指定してください。")));
+                throw new ApiException(ErrorCode.VALIDATION_ERROR, "入力値が不正です。", details);
+            }
+        }
+
+        return taskService.create(title, parentId, priority);
     }
 
     // PATCH title

@@ -31,6 +31,10 @@ public class Task {
     public Task(String id, String parentId, String title, TaskStatus status){
         this(id, parentId, title, status, null);
     }
+    // コンストラクタ(親IDなし)
+    public Task(String id, String title, TaskStatus status, Priority priority){
+        this(id, null, title, status, priority);
+    }
     // コンストラクタ(親IDなし),priority省略
     public Task(String id, String title, TaskStatus status){
         this(id, null, title, status, null);

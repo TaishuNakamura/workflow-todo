@@ -222,7 +222,7 @@ public class TaskService {
     }
 
     // タスクの作成
-    public TaskDetail create(String title, String parentId){
+    public TaskDetail create(String title, String parentId, Priority priority){
         // parentId が指定されたら親のチェック
         if(parentId != null){
             Task parent = store.get(parentId);
@@ -233,8 +233,8 @@ public class TaskService {
             
         String id = UUID.randomUUID().toString();
         Task task = (parentId == null)
-            ? new Task(id, title, TaskStatus.NORMAL)
-            : new Task(id, parentId, title, TaskStatus.NORMAL);
+            ? new Task(id, null, title, TaskStatus.NORMAL, priority)
+            : new Task(id, parentId, title, TaskStatus.NORMAL, priority);
         
         store.put(id, task);
 
