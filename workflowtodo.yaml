@@ -1,4 +1,52 @@
+openapi: 3.0.3
+info:
+  title: Workflow ToDo API
+  version: 0.1.0
+servers:
+  - url: http://localhost:8080
+
 paths:
+  /tasks:
+    get:
+      summary: タスクを全件取得する
+      responses:
+        "200":
+          description: OK
+          content: 
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/TaskDetail" }
+    post:
+      summary: タスクを作成する
+      requestBody:
+        required: true
+        content:
+          application/json: 
+            schema: { $ref: "#/components/schemas/CreateTaskRequest" }
+      responses:
+        "201": 
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TaskDetail" }
+        "400": { $ref: "#/components/responses/Error400" }
+  
+
+  /tasks/{id}:
+    get: 
+      summary: タスク詳細を取得する
+      parameters:
+        - $ref: "#/components/parameters/TaskId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TaskDetail" }
+        "404": { $ref: "#/components/responses/Error404" }
+
+
   /tasks/{id}/send-to-waiting:
     post:
       summary: タスクを確認待ちにする
@@ -141,8 +189,8 @@ paths:
               examples:
                 invalid_state:
                   $ref: "#/components/responses/Error409InvalidState/content/application~1json/examples/invalid_state"
-              children_incomplete:
-                $ref: "#/components/responses/Error409ChildrenIncomplete/content/application~1json/examples/children_incomplete"
+                children_incomplete:
+                  $ref: "#/components/responses/Error409ChildrenIncomplete/content/application~1json/examples/children_incomplete"
 
                     
 components:
@@ -175,6 +223,44 @@ components:
           value: 
             code: INVALID_STATE
             message: タスク状態が不正です。
+
+    TaskDetail:
+      type: object
+      required: [id, title, status, priority, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        status: { $ref: "#/components/schemas/TaskStatus" }
+        priority: { $ref: "#/components/schemas/Priority" }
+        createdAt: { type: string, format: date-time }
+        updatedAt: {type: string, format: date-time }
+
+    CreateTaskRequest:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string }
+        parentId: { type: string, nullable: true }
+        priority:
+          $ref: "#/components/schemas/Priority"
+      description: priority未指定の場合はMEDとして扱う
+
+    TaskStatus:
+      type: string
+      enum: [NORMAL, WAITING_REVIEW, SUSPENDED, DONE]
+
+    Priority:
+      type: string
+      enum: [LOW, MED, HIGH]
+
+  parameters:
+    TaskId: 
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: タスクID(UUID)
     
   responses:
     Error400:
@@ -187,8 +273,11 @@ components:
             validation_error:
               value:
                 code: VALIDATION_ERROR
-                message: バリデーションエラー
-                details: fields
+                message: 入力値が不正です。
+                details: 
+                  fields:
+                    - name: title
+                      reason: 空入力は禁止。
 
     Error404:
       description: 指定されたリソースが存在しない
