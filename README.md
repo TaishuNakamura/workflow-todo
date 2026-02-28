@@ -22,7 +22,7 @@
 
 ### 対象としないこと(やらないこと)
 - チーム利用、権限管理。
-- 通知、期限管理、優先度管理。
+- 通知
 - 履歴管理、監査ログ。
 - 子タスクの高い層構造(親子1階層まで)
 
@@ -45,7 +45,6 @@
 - 状態数は最小限とし、「内容整理」は独立した状態として扱わない。
 - 親子タスクは1階層までとし、孫タスクは扱わない。
 - UIは簡易的なWeb UIとし、業務ルールはバックエンドに集約する。
-- 通知、期限管理、優先度管理は対象外とする。
 
 ## 業務ルール
 ### 状態：NORMAL
@@ -67,6 +66,7 @@
 | approve | NG | INVALID_STATE |
 | reject | NG | INVALID_STATE |
 | complete | NG | INVALID_STATE |
+
 ### 状態：WAITING_REVIEW
 | 操作 | 可否 | 条件/エラー |
 |---|---|---|
@@ -103,8 +103,9 @@
 ## エラー設計
 - code enum：VALIDATION_ERROR/INVALID_STATE/CHILDREN_INCOMPLETE/NOT_FOUND
 - details：
-    - code=CHILDREN_INCOMPLETEの場合のみ、details.incompleteChildrenを返す(id/title/status)
-    - それ以外はdetailsを省略
+    - code=VALIDATION_ERRORの場合、details.fieldsを返す(name/reason)
+    - code=CHILDREN_INCOMPLETEの場合、details.incompleteChildrenを返す(id/title/status)
+    - それ以外はdetailsを省略(null)
 
 ## API別エラー条件一覧
 ### createTask(POST /tasks)

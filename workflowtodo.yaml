@@ -208,6 +208,7 @@ components:
           type: object
           nullable: true
           description: >
+            code=VALIDATION_ERRORの場合、details.fieldsにフィールドエラー配列(name/reason)を入れる。
             code=CHILDREN_INCOMPLETE の場合、details.incompleteChildren に未完了子タスクの配列（id/title/status）を入れる。その他は省略=フィールド自体を返さない。
       examples: 
         children_incomplete:
