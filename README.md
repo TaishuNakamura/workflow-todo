@@ -49,36 +49,43 @@
 
 ## 業務ルール
 ### 状態：NORMAL
-- suspend：OK(progressNote必須)
-- resume：NG(INVALID_STATE)
-- send-to-waiting：OK(waitingReason必須)
-- approve：NG(INVALID_STATE)
-- reject：NG(INVALID_STATE)
-- complete：OK(子タスクがある場合、全子タスク完了が必須)
+| 操作 | 可否 | 条件/エラー |
+|---|---|---|
+| suspend | OK | progressNote必須 |
+| resume | NG | INVALID_STATE |
+| send-to-waiting | OK | waitingReason必須 |
+| approve | NG | INVALID_STATE |
+| reject | NG | INVALID_STATE |
+| complete | OK | 子タスクがある場合、全子タスク完了が必須 |
 
 ### 状態：SUSPENDED
-- suspend：NG(INVALID_STATE)
-- resume：OK
-- send-to-waiting：NG(INVALID_STATE)
-- approve：NG(INVALID_STATE)
-- reject：NG(INVALID_STATE)
-- complete：NG(INVALID_STATE)
-
+| 操作 | 可否 | 条件/エラー |
+|---|---|---|
+| suspend | NG | INVALID_STATE |
+| resume | OK | なし |
+| send-to-waiting | NG | INVALID_STATE |
+| approve | NG | INVALID_STATE |
+| reject | NG | INVALID_STATE |
+| complete | NG | INVALID_STATE |
 ### 状態：WAITING_REVIEW
-- suspend：NG(INVALID_STATE)
-- resume：NG(INVALID_STATE)
-- send-to-waiting：NG(INVALID_STATE)
-- approve：OK(子タスクがある場合、全ての子タスク完了が必須)
-- reject：OK
-- complete：NG(INVALID_STATE)
+| 操作 | 可否 | 条件/エラー |
+|---|---|---|
+| suspend | NG | INVALID_STATE |
+| resume | NG | INVALID_STATE |
+| send-to-waiting | NG | INVALID_STATE |
+| approve | OK | 子タスクがある場合、全ての子タスク完了が必須 |
+| reject | OK | なし |
+| complete | NG | INVALID_STATE |
 
 ### 状態：DONE
-- suspend：NG(INVALID_STATE)
-- resume：NG(INVALID_STATE)
-- send-to-waiting：NG(INVALID_STATE)
-- approve：NG(INVALID_STATE)
-- reject：NG(INVALID_STATE)
-- complete：NG(INVALID_STATE)
+| 操作 | 可否 | 条件/エラー |
+|---|---|---|
+| suspend | NG | INVALID_STATE |
+| resume | NG | INVALID_STATE |
+| send-to-waiting | NG | INVALID_STATE |
+| approve | NG | INVALID_STATE |
+| reject | NG | INVALID_STATE |
+| complete | NG | INVALID_STATE |
 
 ## API仕様（エンドポイント）
 - GET /tasks：通常一覧(NORMAL/SUSPENDED/WAITING_REVIEW 混在)
@@ -158,6 +165,40 @@
 - 409：
     - NORMAL以外からの遷移(INVALID_STATE)
     - 未完了の子タスクが存在(CHILDREN_INCOMPLETE)
+
+## テストケース(仕様固定用)
+
+実装訓練のため、最低限の部分は **毎回同じ期待値** になるように固定する。
+
+### 一覧ソート(GET /tasks, GET /tasks/waiting)
+- sort: `priority` 高→低 → `createdAt` 新→古 → `id`
+- `GET /tasks/waiting` は `status=WAITING_REVIEW` のみ
+
+### priority
+|入力|期待|
+|---|---|
+|未指定|`MED` を補完|
+|`LOW` / `MED` / `HIGH`|そのまま反映|
+|不正値（例:`"HIG"`）|400 `VALIDATION_ERROR`（fields.name=`priority`）|
+
+### createdAt / updatedAt
+|操作|createdAt|updatedAt|
+|---|---|---|
+|POST /tasks(作成)|サーバ付与・固定|createdAtと同一|
+|状態遷移(suspend/send-to-waiting/approve/reject/resume/complete)|変化しない|成功時のみ更新|
+|失敗(400/404/409)|変化しない|変化しない|
+
+### 親子制約
+|対象|条件|結果|
+|---|---|---|
+|子タスク操作|親が `SUSPENDED` or `DONE`|409 `INVALID_STATE`|
+|親タスク操作(approve/complete)|未完了子タスクが1件でもある(`status != DONE`)|409 `CHILDREN_INCOMPLETE` + `details.incompleteChildren[{id, title, status}]`|
+
+### 必須フィールド名(ControllerのrequestBody)
+|API|必須フィールド|空/トリム後空の結果|
+|---|---|---|
+|POST /tasks/{id}/send-to-waiting|`waitingReason`|400 `VALIDATION_ERROR`|
+|POST /tasks/{id}/suspend|`progressNote`|400 `VALIDATION_ERROR`|
 
 ## 今後の進め方
 1. 基本設計:タスク項目(必須/任意)と入力制約を確定
