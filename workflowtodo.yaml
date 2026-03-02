@@ -8,7 +8,7 @@ servers:
 paths:
   /tasks:
     get:
-      summary: タスクを全件取得する
+      summary: タスク一覧を取得する
       responses:
         "200":
           description: OK
@@ -224,6 +224,7 @@ components:
           value: 
             code: INVALID_STATE
             message: タスク状態が不正です。
+            details: null
 
     TaskDetail:
       type: object

@@ -66,7 +66,7 @@ public class TaskService {
 
         // 状態がSUSPENDED以外
         if(task.getStatus() != TaskStatus.SUSPENDED){
-            throw new ApiException(ErrorCode.INVALID_STATE, "タスク状態が不正です。");
+            throw ApiException.invalidState();
         }
 
         task.setStatus(TaskStatus.NORMAL);
@@ -84,7 +84,7 @@ public class TaskService {
         // 状態がNORMALかWAITING_REVIEWならSUSPEND以外
         TaskStatus status = task.getStatus();
         if(status != TaskStatus.NORMAL && status != TaskStatus.WAITING_REVIEW){
-            throw new ApiException(ErrorCode.INVALID_STATE, "タスク状態が不正です。");
+            throw ApiException.invalidState();
         }
 
         task.setStatus(TaskStatus.SUSPENDED);
@@ -101,7 +101,7 @@ public class TaskService {
 
         // 状態がNORMAL以外
         if(task.getStatus() != TaskStatus.NORMAL){
-            throw new ApiException(ErrorCode.INVALID_STATE, null);
+            throw ApiException.invalidState();
         }
         
         task.setStatus(TaskStatus.WAITING_REVIEW);
@@ -118,7 +118,7 @@ public class TaskService {
 
         // 状態がWAITING_REVIEW以外
         if(task.getStatus() != TaskStatus.WAITING_REVIEW){
-            throw new ApiException(ErrorCode.INVALID_STATE, null);
+            throw ApiException.invalidState();
         }
 
         task.setStatus(TaskStatus.NORMAL);
@@ -135,14 +135,14 @@ public class TaskService {
 
         // WAITING_REVIEW以外
         if(task.getStatus() != TaskStatus.WAITING_REVIEW){
-            throw new ApiException(ErrorCode.INVALID_STATE, null);
+            throw ApiException.invalidState();
         }
 
         // 未完了の子タスクあり
         Map<String, Object> details = incompleteChildrenDetails(task.getId());
         List<?> list = (List<?>) details.get("incompleteChildren");
         if(!list.isEmpty()){
-            throw new ApiException(ErrorCode.CHILDREN_INCOMPLETE, null, details);
+            throw ApiException.childrenIncomplete(details);
         }
 
         task.setStatus(TaskStatus.DONE);
@@ -159,14 +159,14 @@ public class TaskService {
 
         // NORMAL以外
         if(task.getStatus() != TaskStatus.NORMAL){
-            throw new ApiException(ErrorCode.INVALID_STATE, null);
+            throw ApiException.invalidState();
         }
 
         // 未完了の子タスクあり
         Map<String, Object> details = incompleteChildrenDetails(task.getId());
         List<?> list = (List<?>) details.get("incompleteChildren");
         if(!list.isEmpty()){
-            throw new ApiException(ErrorCode.CHILDREN_INCOMPLETE, null, details);
+            throw ApiException.childrenIncomplete(details);
         }
 
         task.setStatus(TaskStatus.DONE);
@@ -178,7 +178,7 @@ public class TaskService {
     private Task getRequiredTask(String id){
         Task task = store.get(id);
         if(task == null){
-            throw new ApiException(ErrorCode.NOT_FOUND, null);
+            throw ApiException.notFound();
         }
         return task;
     }
@@ -190,7 +190,7 @@ public class TaskService {
 
         Task parent = store.get(parentId);
         if(parent != null && (parent.getStatus() == TaskStatus.SUSPENDED || parent.getStatus() == TaskStatus.DONE)){
-            throw new ApiException(ErrorCode.INVALID_STATE, null);
+            throw ApiException.invalidState();
         }
     }
 
@@ -214,7 +214,7 @@ public class TaskService {
         Task task = getRequiredTask(id);
 
         if(title == null || title.isBlank()){
-            throw new ApiException(ErrorCode.VALIDATION_ERROR, null, Map.of("fields", List.of(new ValidationFieldError("title", "空入力は禁止。"))));
+            throw ApiException.validationError(Map.of("fields", List.of(new ValidationFieldError("title", "空入力は禁止。"))));
         }
 
         task.setTitle(title);
@@ -227,7 +227,7 @@ public class TaskService {
         if(parentId != null){
             Task parent = store.get(parentId);
             if(parent == null){
-                throw new ApiException(ErrorCode.NOT_FOUND, null);
+                throw ApiException.notFound();
             }
         }
             
@@ -278,7 +278,7 @@ public class TaskService {
     public List<TaskDetail>listByParentId(String parentId){
         // 親の存在チェック
         if(store.get(parentId) == null){
-            throw new ApiException(ErrorCode.NOT_FOUND, null);
+            throw ApiException.notFound();
         }
 
         // 事前にタスクをソート

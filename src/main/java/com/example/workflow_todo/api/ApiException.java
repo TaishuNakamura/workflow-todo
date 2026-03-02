@@ -26,4 +26,20 @@ public class ApiException extends RuntimeException {
     public Object getDetails(){
         return details;
     }
+
+    public static ApiException validationError(Object details){
+        return new ApiException(ErrorCode.VALIDATION_ERROR, null, details);
+    }
+
+    public static ApiException childrenIncomplete(Object details){
+        return new ApiException(ErrorCode.CHILDREN_INCOMPLETE, null, details);
+    }
+
+    public static ApiException invalidState(){
+        return new ApiException(ErrorCode.INVALID_STATE, null);
+    }
+
+    public static ApiException notFound(){
+        return new ApiException(ErrorCode.NOT_FOUND, null);
+    }
 }
